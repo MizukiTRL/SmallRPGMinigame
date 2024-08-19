@@ -3,7 +3,6 @@ use std::{clone, time::Duration};
 #[derive(Clone)]
 pub enum State {
     Normal,
-    Poisoned,
     Stunned,
     Dead,
 }
@@ -14,18 +13,19 @@ pub enum EntityType {
     FollowingPlayer,
     PlayerControlled,
 }
+
+//skills used in combat
 #[derive(Clone)]
 pub struct Skill {
     name: String,
     cost: i32,
     atk_skill: AtkSkill,
     effect_skill: EffectSkill,
-
 }
 
-impl Skill {
-    
-}
+impl Skill {}
+
+//Damage types
 pub enum AttackElement {
     Fire,
     Water,
@@ -33,6 +33,7 @@ pub enum AttackElement {
     Physical,
 }
 
+//Applies damage on the skill
 #[derive(Clone)]
 pub struct AtkSkill {
     motion_value: f32,
@@ -40,27 +41,79 @@ pub struct AtkSkill {
 
 impl AtkSkill {
     pub fn new(mv: f32) -> Self {
-        AtkSkill {
-            motion_value: mv,
-        }
+        AtkSkill { motion_value: mv }
     }
 
     pub fn new_empty() -> Self {
-        AtkSkill {
-            motion_value: 0.0,
-        }
+        AtkSkill { motion_value: 0.0 }
     }
 }
+
+//Applies effects to skils
 #[derive(Clone)]
-pub struct  EffectSkill {
-    effects: Vec<Effect>
+pub struct EffectSkill {
+    effects: Vec<Effect>,
 }
 #[derive(Clone)]
-pub enum Effect {
+pub struct Effect {
+    duration: u8,
+    effect_type: EffectType,
+    effect_target: EffectTarget,
+}
+
+#[derive(Clone)]
+enum EffectTarget {
+    TargetEnemy,
+    TargetSelf,
+}
+#[derive(Clone)]
+enum EffectType {
+    Buff(BuffType),
+    Debuff(DebuffType),
     Heal(i32),
-    AtkBuff(f32, u8),
-    ElementalBuff(),
-    Stun()
+    None,
+}
+
+#[derive(Clone)]
+enum BuffType {
+    AtkUp(f32),
+    FlatAtkUp(u32),
+    ElementalUp(f32),
+    FireUp(f32),
+    IceUp(f32),
+    LightningUp(f32),
+    PhysicalUp(f32),
+    SkillUp(f32),
+    BasicUp(f32),
+    DefUp(f32),
+    FlatDefUp(u32),
+    ElementalResUp(f32),
+    FireResUp(f32),
+    IceResUp(f32),
+    LightningResUp(f32),
+    PhysicalResUp(f32),
+}
+
+#[derive(Clone)]
+enum DebuffType {
+    Stun,
+    Poison,
+    AtkDown(f32),
+    FlatAtkDown(u32),
+    DefDown(f32),
+    FlatDefDown(u32),
+    ElementalDown(f32),
+    FireDown(f32),
+    IceDown(f32),
+    LightningDown(f32),
+    PhysicalDown(f32),
+    SkillDown(f32),
+    BasicDown(f32),
+    ElementalResDown(f32),
+    FireResDown(f32),
+    IceResDown(f32),
+    LightningResDown(f32),
+    PhysicalResDown(f32),
 }
 
 #[derive(Clone)]

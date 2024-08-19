@@ -5,16 +5,14 @@ use super::{
     graphical_interface::{self, clear_terminal, confirm_box},
     utils::{
         level::Level,
-        obstacle::{self, Obstacle},
-        structs::{AtkSkill, AttackElement, AttackType, EffectSkill, EffectType, Entity, EntityType, Skill, State},
+        obstacle::Obstacle,
+        structs::{AtkSkill, AttackElement, EffectSkill, Entity, EntityType, Skill},
     },
 };
 
 fn test1() {
     clear_terminal();
     let mut test_level1 = Level::new(10, 20);
-
-    let mut empty_skill = Skill::new_empty();
 
     let mut p1 = Entity::new(
         String::from("test"),
@@ -72,21 +70,8 @@ fn test1() {
     game::map_game(&mut p1, o1, e1, test_level1);
 }
 
-fn test2(){
-
+fn test2() {
     let mut test_level1 = Level::new(10, 10);
-
-    let mut basic_attack = AtkSkill::new("basic".to_string(), 0, 0.6, AttackType::Basic());
-
-    let mut attack_skills = vec![
-        AtkSkill::new("fire".to_string(), 2, 1.0, AttackType::Skill(AttackElement::Fire)),
-        AtkSkill::new("punch".to_string(), 3, 1.2, AttackType::Skill(AttackElement::Physical)),
-    ];
-
-    let mut effect_skills = vec![
-        EffectSkill::new("heal".to_string(), 3, "heal".to_string(), EffectType::Heal, 300.0, 0),
-        EffectSkill::new("atkup".to_string(), 2, "attack up".to_string(), EffectType::Buff, 0.2, 3),
-    ];
 
     let mut player = Entity::new(
         String::from("test"),
@@ -104,23 +89,21 @@ fn test2(){
         vec![],
     );
 
-    let mut enemies = vec![
-        Entity::new(
-            String::from("test1"),
-            5000,
-            100,
-            20,
-            EntityType::Still,
-            (6, 7),
-            [
-                String::from("fire"),
-                String::from("heal"),
-                String::from(""),
-                String::from(""),
-            ],
-            vec![],
-        ),
-    ];
+    let mut enemies = vec![Entity::new(
+        String::from("test1"),
+        5000,
+        100,
+        20,
+        EntityType::Still,
+        (6, 7),
+        [
+            String::from("fire"),
+            String::from("heal"),
+            String::from(""),
+            String::from(""),
+        ],
+        vec![],
+    )];
 
     battle(&mut player, &enemies);
 }

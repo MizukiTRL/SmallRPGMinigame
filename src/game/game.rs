@@ -16,10 +16,6 @@ fn random_range(first: i32, last: i32) -> i32 {
     random_number
 }
 
-fn search_skill<T>(name: String, atk_skills: Vec<AtkSkill>, effect_skills: Vec<EffectSkill>) -> <T>{
-
-}
-
 //checks the colition with an obstacle/wall
 fn check_colitions_obstacle(p: &Entity, os: &Vec<Obstacle>) -> bool {
     for o in os {
@@ -178,8 +174,13 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
                     graphical_interface::clear_terminal();
                     graphical_interface::skill_menu(&player);
                     let mut skill_opt = String::from("");
-                    io::stdin().read_line(&mut skill_opt).expect("there was an error reading the user's output");
-                    let skill_opt_int: u8 = skill_opt.trim().parse().expect("erorr transforming String into u8");
+                    io::stdin()
+                        .read_line(&mut skill_opt)
+                        .expect("there was an error reading the user's output");
+                    let skill_opt_int: u8 = skill_opt
+                        .trim()
+                        .parse()
+                        .expect("erorr transforming String into u8");
 
                     match skill_opt_int {
                         1 => (),
