@@ -5,6 +5,7 @@ use std::{option, thread};
 
 use rand::Rng;
 
+use super::utils::structs::{AtkSkill, EffectSkill};
 use super::utils::{level::Level, obstacle::Obstacle, structs::Entity};
 
 use super::graphical_interface::{self, clear_terminal};
@@ -13,6 +14,10 @@ fn random_range(first: i32, last: i32) -> i32 {
     let mut rng = rand::thread_rng();
     let random_number = rng.gen_range(first..=last);
     random_number
+}
+
+fn search_skill<T>(name: String, atk_skills: Vec<AtkSkill>, effect_skills: Vec<EffectSkill>) -> <T>{
+
 }
 
 //checks the colition with an obstacle/wall
@@ -142,7 +147,7 @@ pub fn map_game(
 }
 
 //battle gameplay
-fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
+pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
     //gets the enemy to fight
     let mut fight_enemy = search_battle_enemy(&player, &enemies).expect("failed to find the enemy");
     let mut battle = true;
@@ -172,6 +177,17 @@ fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
                 2 => {
                     graphical_interface::clear_terminal();
                     graphical_interface::skill_menu(&player);
+                    let mut skill_opt = String::from("");
+                    io::stdin().read_line(&mut skill_opt).expect("there was an error reading the user's output");
+                    let skill_opt_int: u8 = skill_opt.trim().parse().expect("erorr transforming String into u8");
+
+                    match skill_opt_int {
+                        1 => (),
+                        2 => (),
+                        3 => (),
+                        4 => (),
+                        _ => println!(" wrong number "),
+                    }
                 }
                 //defense
                 3 => select_action_menu = false,

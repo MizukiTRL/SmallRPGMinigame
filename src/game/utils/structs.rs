@@ -1,3 +1,5 @@
+use std::{clone, time::Duration};
+
 #[derive(Clone)]
 pub enum State {
     Normal,
@@ -16,21 +18,13 @@ pub enum EntityType {
 pub struct Skill {
     name: String,
     cost: i32,
+    atk_skill: AtkSkill,
+    effect_skill: EffectSkill,
+
 }
 
 impl Skill {
-    pub fn new(name: String, cost: i32) -> Self {
-        Skill {
-            name: name,
-            cost: cost,
-        }
-    }
-    pub fn new_empty() -> Self {
-        Skill {
-            name: String::from(""),
-            cost: 0,
-        }
-    }
+    
 }
 pub enum AttackElement {
     Fire,
@@ -39,33 +33,34 @@ pub enum AttackElement {
     Physical,
 }
 
-pub enum AttackType {
-    Basic(),
-    Skill(AttackElement),
-}
-
+#[derive(Clone)]
 pub struct AtkSkill {
-    skill: Skill,
     motion_value: f32,
-    attack_type: AttackType,
 }
 
-pub enum EffectType {
-    Buff(),
-    Debuff(),
-    Heal,
-    Clense,
-}
+impl AtkSkill {
+    pub fn new(mv: f32) -> Self {
+        AtkSkill {
+            motion_value: mv,
+        }
+    }
 
-pub struct Effect{
-    pub name: String,
-    pub effect_type: EffectType,
-    pub effect_value: f32,
+    pub fn new_empty() -> Self {
+        AtkSkill {
+            motion_value: 0.0,
+        }
+    }
 }
-
-pub struct EffectSkill {
-    skill: Skill,
-    effect: Effect
+#[derive(Clone)]
+pub struct  EffectSkill {
+    effects: Vec<Effect>
+}
+#[derive(Clone)]
+pub enum Effect {
+    Heal(i32),
+    AtkBuff(f32, u8),
+    ElementalBuff(),
+    Stun()
 }
 
 #[derive(Clone)]
@@ -79,6 +74,7 @@ pub struct Entity {
     pub entity_type: EntityType,
     pub pos: (i32, i32),
     pub skills: [String; 4],
+    pub effects: Vec<Effect>,
 }
 
 impl Entity {
@@ -90,6 +86,7 @@ impl Entity {
         entity_type: EntityType,
         pos: (i32, i32),
         skill: [String; 4],
+        effect: Vec<Effect>,
     ) -> Self {
         Entity {
             name: name,
@@ -101,6 +98,7 @@ impl Entity {
             entity_type: entity_type,
             pos: pos,
             skills: skill,
+            effects: effect,
         }
     }
 
