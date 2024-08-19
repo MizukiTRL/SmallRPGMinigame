@@ -6,13 +6,18 @@ use super::{
     utils::{
         level::Level,
         obstacle::Obstacle,
-        structs::{AtkSkill, AttackElement, EffectSkill, Entity, EntityType, Skill},
+        structs::{
+            AtkSkill, AttackElement, Effect, EffectSkill, EffectTarget, EffectType, Entity,
+            EntityType, Skill,
+        },
     },
 };
 
 fn test1() {
     clear_terminal();
     let mut test_level1 = Level::new(10, 20);
+
+    let mut empty_skill = Skill::new_empty();
 
     let mut p1 = Entity::new(
         String::from("test"),
@@ -22,10 +27,12 @@ fn test1() {
         EntityType::PlayerControlled,
         (5, 5),
         [
-            String::from(""),
-            String::from(""),
-            String::from(""),
-            String::from(""),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
         ],
         vec![],
     );
@@ -43,10 +50,12 @@ fn test1() {
             EntityType::Still,
             (6, 7),
             [
-                String::from(""),
-                String::from(""),
-                String::from(""),
-                String::from(""),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
             ],
             vec![],
         ),
@@ -58,10 +67,12 @@ fn test1() {
             EntityType::Still,
             (2, 4),
             [
-                String::from(""),
-                String::from(""),
-                String::from(""),
-                String::from(""),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
+                empty_skill.clone(),
             ],
             vec![],
         ),
@@ -73,6 +84,27 @@ fn test1() {
 fn test2() {
     let mut test_level1 = Level::new(10, 10);
 
+    let mut fire_skill = Skill::new(
+        "fire".to_string(),
+        2,
+        AtkSkill::new(1.0, AttackElement::Fire),
+        EffectSkill::new_empty(),
+    );
+
+    let mut heal_skill = Skill::new(
+        "heal".to_string(),
+        3,
+        AtkSkill::new_empty(),
+        EffectSkill::new(vec![Effect::new(
+            "heal".to_string(),
+            0,
+            EffectType::Heal(200),
+            EffectTarget::TargetSelf,
+        )]),
+    );
+
+    let mut empty_skill = Skill::new_empty();
+
     let mut player = Entity::new(
         String::from("test"),
         10000,
@@ -81,10 +113,12 @@ fn test2() {
         EntityType::PlayerControlled,
         (5, 5),
         [
-            String::from("fire"),
-            String::from("punch"),
-            String::from("heal"),
-            String::from("atkup"),
+            fire_skill.clone(),
+            heal_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
         ],
         vec![],
     );
@@ -95,12 +129,14 @@ fn test2() {
         100,
         20,
         EntityType::Still,
-        (6, 7),
+        (5, 5),
         [
-            String::from("fire"),
-            String::from("heal"),
-            String::from(""),
-            String::from(""),
+            fire_skill.clone(),
+            heal_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
+            empty_skill.clone(),
         ],
         vec![],
     )];
@@ -143,7 +179,7 @@ fn game_menu() {
             2 => (),
             3 => (),
             4 => {
-                test1();
+                test2();
             }
             5 => menu1 = false,
             _ => (),

@@ -54,6 +54,6 @@ pub fn skill_menu(p: &Entity) {
 
     for s in &p.skills {
         counter += 1;
-        println!("{}- {}", counter, s);
+        println!("{}- {}", counter, s.name);
     }
 }

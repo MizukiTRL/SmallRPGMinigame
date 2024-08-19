@@ -1,11 +1,12 @@
 use std::io::{self, Read, Write};
+use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{option, thread};
 
 use rand::Rng;
 
-use super::utils::structs::{AtkSkill, EffectSkill};
+use super::utils::structs::{AtkSkill, BuffType, Effect, EffectSkill, EffectTarget, EffectType, Skill};
 use super::utils::{level::Level, obstacle::Obstacle, structs::Entity};
 
 use super::graphical_interface::{self, clear_terminal};
@@ -183,7 +184,9 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
                         .expect("erorr transforming String into u8");
 
                     match skill_opt_int {
-                        1 => (),
+                        1 => if player.skills[0].name != "empty".to_string() {
+                            
+                        },
                         2 => (),
                         3 => (),
                         4 => (),
@@ -211,4 +214,59 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
     }
 
     None
+}
+
+fn use_skill(mut p: &mut Entity, mut e: &mut Entity, s: &Skill){
+    
+    let mut effects = &mut p.effects;
+    let mut enemy_effects = &mut e.effects;
+
+    if !s.effect_skill.effects.is_empty(){
+        for effect in &s.effect_skill.effects{
+            match effect.effect_target {
+                EffectTarget::TargetEnemy => apply_effect(e, effect),
+                EffectTarget::TargetSelf => apply_effect(p, effect),
+                EffectTarget::None => (),
+            }
+        }
+    }
+
+}
+
+fn apply_effect(target: &mut Entity, effect: &Effect){
+    match &effect.effect_type {
+        EffectType::Buff(a) =>{
+            match a{
+                BuffType::AtkUp(a) => (),
+                BuffType::FlatAtkUp(a) => (),
+                BuffType::ElementalUp(f32) => (),
+                BuffType::FireUp(f32) => (),
+                BuffType::IceUp(f32) => (),
+                BuffType::LightningUp(f32) => (),
+                BuffType::PhysicalUp(f32) => (),
+                BuffType::SkillUp(f32) => (),
+                BuffType::BasicUp(f32) => (),
+                BuffType::DefUp(f32) => (),
+                BuffType::FlatDefUp(u32) => (),
+                BuffType::ElementalResUp(f32) => (),
+                BuffType::FireResUp(f32) => (),
+                BuffType::IceResUp(f32) => (),
+                BuffType::LightningResUp(f32) => (),
+                BuffType::PhysicalResUp(f32) => (),
+            }
+        },
+        EffectType::Debuff(b) => {
+
+        },
+        EffectType::Heal(a) => {
+            target.cur_hp += a;
+            if target.cur_hp > target.max_hp{
+                target.cur_hp = target.max_hp
+            }
+        },
+        EffectType::None => {
+            println!("empty skill selected");
+            sleep(Duration::from_secs(1));
+        },
+    }
 }
