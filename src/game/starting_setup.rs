@@ -7,8 +7,7 @@ use super::{
         level::Level,
         obstacle::Obstacle,
         structs::{
-            AtkSkill, AttackElement, Effect, EffectSkill, EffectTarget, EffectType, Entity,
-            EntityType, Skill,
+            AtkSkill, AtkType, AttackElement, Effect, EffectSkill, EffectTarget, EffectType, Entity, EntityType, Skill
         },
     },
 };
@@ -35,6 +34,7 @@ fn test1() {
             empty_skill.clone(),
         ],
         vec![],
+        empty_skill.clone(),
     );
     let o1 = vec![
         Obstacle::new((0, 4)),
@@ -58,6 +58,7 @@ fn test1() {
                 empty_skill.clone(),
             ],
             vec![],
+            empty_skill.clone(),
         ),
         Entity::new(
             String::from("test1"),
@@ -75,6 +76,7 @@ fn test1() {
                 empty_skill.clone(),
             ],
             vec![],
+            empty_skill.clone()
         ),
     ];
 
@@ -87,7 +89,7 @@ fn test2() {
     let mut fire_skill = Skill::new(
         "fire".to_string(),
         2,
-        AtkSkill::new(1.0, AttackElement::Fire),
+        AtkSkill::new(1.0, AttackElement::Fire, AtkType::Skill),
         EffectSkill::new_empty(),
     );
 
@@ -121,6 +123,7 @@ fn test2() {
             empty_skill.clone(),
         ],
         vec![],
+        empty_skill.clone(),
     );
 
     let mut enemies = vec![Entity::new(
@@ -139,6 +142,7 @@ fn test2() {
             empty_skill.clone(),
         ],
         vec![],
+        empty_skill.clone(),
     )];
 
     battle(&mut player, &enemies);

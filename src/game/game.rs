@@ -6,7 +6,9 @@ use std::{option, thread};
 
 use rand::Rng;
 
-use super::utils::structs::{AtkSkill, BuffType, Effect, EffectSkill, EffectTarget, EffectType, Skill};
+use super::utils::structs::{
+    AtkSkill, AtkType, AttackElement, BuffType, DebuffType, Effect, EffectSkill, EffectTarget, EffectType, Skill
+};
 use super::utils::{level::Level, obstacle::Obstacle, structs::Entity};
 
 use super::graphical_interface::{self, clear_terminal};
@@ -184,9 +186,7 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
                         .expect("erorr transforming String into u8");
 
                     match skill_opt_int {
-                        1 => if player.skills[0].name != "empty".to_string() {
-                            
-                        },
+                        1 => if player.skills[0].name != "empty".to_string() {},
                         2 => (),
                         3 => (),
                         4 => (),
@@ -216,13 +216,12 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
     None
 }
 
-fn use_skill(mut p: &mut Entity, mut e: &mut Entity, s: &Skill){
-    
+fn use_skill(mut p: &mut Entity, mut e: &mut Entity, s: &Skill) {
     let mut effects = &mut p.effects;
     let mut enemy_effects = &mut e.effects;
 
-    if !s.effect_skill.effects.is_empty(){
-        for effect in &s.effect_skill.effects{
+    if !s.effect_skill.effects.is_empty() {
+        for effect in &s.effect_skill.effects {
             match effect.effect_target {
                 EffectTarget::TargetEnemy => apply_effect(e, effect),
                 EffectTarget::TargetSelf => apply_effect(p, effect),
@@ -233,40 +232,82 @@ fn use_skill(mut p: &mut Entity, mut e: &mut Entity, s: &Skill){
 
 }
 
-fn apply_effect(target: &mut Entity, effect: &Effect){
-    match &effect.effect_type {
-        EffectType::Buff(a) =>{
-            match a{
-                BuffType::AtkUp(a) => (),
-                BuffType::FlatAtkUp(a) => (),
-                BuffType::ElementalUp(f32) => (),
-                BuffType::FireUp(f32) => (),
-                BuffType::IceUp(f32) => (),
-                BuffType::LightningUp(f32) => (),
-                BuffType::PhysicalUp(f32) => (),
-                BuffType::SkillUp(f32) => (),
-                BuffType::BasicUp(f32) => (),
-                BuffType::DefUp(f32) => (),
-                BuffType::FlatDefUp(u32) => (),
-                BuffType::ElementalResUp(f32) => (),
-                BuffType::FireResUp(f32) => (),
-                BuffType::IceResUp(f32) => (),
-                BuffType::LightningResUp(f32) => (),
-                BuffType::PhysicalResUp(f32) => (),
-            }
-        },
-        EffectType::Debuff(b) => {
+fn apply_effect(target: &mut Entity, effect: &Effect) {
+    target.effects.push(effect.clone());
+}
 
-        },
-        EffectType::Heal(a) => {
-            target.cur_hp += a;
-            if target.cur_hp > target.max_hp{
-                target.cur_hp = target.max_hp
-            }
-        },
-        EffectType::None => {
-            println!("empty skill selected");
-            sleep(Duration::from_secs(1));
-        },
+fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill){
+    let mut damage = 0;
+
+    let mut mv = skill.atk_skill.motion_value.clone();
+    let mut  atk = caster.atk.clone();
+    let mut atk_up = 0.0;
+    let mut flat_atk_up = 0;
+    let mut ele_damage = 0.0;
+    let mut fire_up = 0.0;
+    let mut ice_up = 0.0;
+    let mut lightning_up = 0.0;
+    let mut physical_up = 0.0;
+    let mut skill_up = 0.0;
+    let mut basic_up = 0.0;
+
+    for buffs in &caster.effects {
+        match &buffs.effect_type {
+            EffectType::Buff(a) =>{
+                match a{
+                    BuffType::AtkUp(b) => atk_up += b,
+                    BuffType::FlatAtkUp(b) => flat_atk_up += b,
+                    BuffType::ElementalUp(b) => ele_damage += b,
+                    BuffType::FireUp(b) => fire_up += b,
+                    BuffType::IceUp(b) => ice_up += b,
+                    BuffType::LightningUp(b) => lightning_up+= b,
+                    BuffType::PhysicalUp(b) => physical_up += b,
+                    BuffType::SkillUp(b) => skill_up += b,
+                    BuffType::BasicUp(b) => basic_up += b,
+                    _ => (),
+                }
+            },
+            EffectType::Debuff(a) => {
+                match a{
+                    DebuffType::AtkDown(b) => atk_up -= b,
+                    DebuffType::FlatAtkDown(b) => flat_atk_up -= b,
+                    DebuffType::ElementalDown(b)=> ele_damage -= b,
+                    DebuffType::FireDown(b)=> fire_up -= b,
+                    DebuffType::IceDown(b)=> ice_up -= b,
+                    DebuffType::LightningDown(b)=>(),
+                    DebuffType::PhysicalDown(b)=>(),
+                    DebuffType::SkillDown(b)=>(),
+                    DebuffType::BasicDown(b)=>(),
+                    _ =>(),
+                }
+            },
+            _ => (),
+        }
     }
+
+    match skill.atk_skill.attack_type {
+        AtkType::Basic => ele_damage += basic_up,
+        AtkType::Skill => ele_damage += skill_up,
+        _ => (),
+    }
+
+    match skill.atk_skill.attack_element {
+        AttackElement::Fire => ele_damage += fire_up,
+        AttackElement::Ice => ele_damage += ice_up,
+        AttackElement::Lightning => ele_damage += lightning_up,
+        AttackElement::Physical => ele_damage += physical_up,
+        AttackElement::None => (),
+    }
+
+    
+
+    for effects in &target.effects{
+        match &effects.effect_type {
+            EffectType::Buff(a) => (),
+            EffectType::Debuff(a) => (),
+            _ => (),
+        }
+    }
+
+
 }

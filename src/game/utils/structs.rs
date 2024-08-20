@@ -26,6 +26,7 @@ pub struct Entity {
     pub pos: (i32, i32),
     pub skills: [Skill; 6],
     pub effects: Vec<Effect>,
+    pub basic: Skill,
 }
 
 impl Entity {
@@ -38,6 +39,7 @@ impl Entity {
         pos: (i32, i32),
         skill: [Skill; 6],
         effect: Vec<Effect>,
+        basic: Skill
     ) -> Self {
         Entity {
             name: name,
@@ -50,6 +52,7 @@ impl Entity {
             pos: pos,
             skills: skill,
             effects: effect,
+            basic: basic,
         }
     }
 
@@ -99,29 +102,40 @@ impl Skill {
 #[derive(Clone)]
 pub enum AttackElement {
     Fire,
-    Water,
+    Ice,
     Lightning,
     Physical,
     None,
 }
-
+#[derive(Clone)]
+pub enum AtkType{
+    Basic,
+    Skill,
+    None,
+}
 //Applies damage on the skill
 #[derive(Clone)]
 pub struct AtkSkill {
     pub motion_value: f32,
     pub attack_element: AttackElement,
+    pub attack_type: AtkType,
 }
 
 impl AtkSkill {
-    pub fn new(mv: f32, attack_element: AttackElement) -> Self {
-        AtkSkill { 
+    pub fn new(mv: f32, attack_element: AttackElement, attack_type: AtkType) -> Self {
+        AtkSkill {
             motion_value: mv,
             attack_element: attack_element,
+            attack_type: attack_type,
         }
     }
 
     pub fn new_empty() -> Self {
-        AtkSkill { motion_value: 0.0, attack_element: AttackElement::None}
+        AtkSkill {
+            motion_value: 0.0,
+            attack_element: AttackElement::None,
+            attack_type: AtkType::None,
+        }
     }
 }
 
