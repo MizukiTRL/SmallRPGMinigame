@@ -2,7 +2,7 @@ use std::process::Command;
 use std::thread::sleep;
 use std::time::Duration;
 
-use super::utils::structs::Entity;
+use super::utils::structs::{Entity, Skill};
 
 pub fn clear_terminal() {
     if cfg!(target_os = "windows") {
@@ -56,4 +56,13 @@ pub fn skill_menu(p: &Entity) {
         counter += 1;
         println!("{}- {}", counter, s.name);
     }
+}
+
+pub fn damage_promp(caster: &Entity, target: &Entity, skill: &Skill, damage: i32) {
+    println!();
+    println!(
+        "{} has used {}, dealing {} to {}",
+        caster.name, skill.name, damage, target.name
+    );
+    sleep(Duration::from_secs(1));
 }

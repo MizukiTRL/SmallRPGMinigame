@@ -22,7 +22,7 @@ fn test1() {
     let mut p1 = Entity::new(
         String::from("test"),
         10000,
-        200,
+        2000,
         40,
         EntityType::PlayerControlled,
         (5, 5),
@@ -115,7 +115,7 @@ fn test2() {
             0,
             EffectType::Heal(200),
             EffectTarget::TargetSelf,
-            false
+            false,
         )]),
     );
 
@@ -167,7 +167,7 @@ fn test2() {
         0.2,
     )];
 
-    battle(&mut player, &enemies);
+    battle(&mut player, &mut enemies);
 }
 
 fn load_data() {
@@ -205,7 +205,7 @@ fn game_menu() {
             2 => (),
             3 => (),
             4 => {
-                test1();
+                test2();
             }
             5 => menu1 = false,
             _ => (),

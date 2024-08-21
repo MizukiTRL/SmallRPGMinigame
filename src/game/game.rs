@@ -8,7 +8,7 @@ use rand::Rng;
 
 use super::utils::structs::{
     AtkSkill, AtkType, AttackElement, BuffType, DebuffType, Effect, EffectSkill, EffectTarget,
-    EffectType, Skill,
+    EffectType, Skill, State,
 };
 use super::utils::{level::Level, obstacle::Obstacle, structs::Entity};
 
@@ -51,8 +51,8 @@ fn check_colitions_enemy(mut p: &Entity, mut es: &Vec<Entity>) -> bool {
 }
 
 //searches the enemy the player colided with
-fn search_battle_enemy<'a>(mut p: &Entity, mut es: &'a Vec<Entity>) -> Option<&'a Entity> {
-    for e in es {
+fn search_battle_enemy<'a>(mut p: &Entity, mut es: &'a mut Vec<Entity>) -> Option<&'a mut Entity> {
+    for mut e in es {
         if check_colitions_enemy(p, &vec![e.clone()]) {
             return Some(e);
         }
@@ -92,7 +92,7 @@ pub fn map_game(
                         player.move_down();
                     }
                     if check_colitions_enemy(&player, &enemies) {
-                        match battle(player, &enemies) {
+                        match battle(player, &mut enemies) {
                             Some(a) => (),
                             None => player.move_down(),
                         }
@@ -106,7 +106,7 @@ pub fn map_game(
                         player.move_right();
                     }
                     if check_colitions_enemy(&player, &enemies) {
-                        match battle(player, &enemies) {
+                        match battle(player, &mut enemies) {
                             Some(a) => (),
                             None => player.move_right(),
                         }
@@ -120,7 +120,7 @@ pub fn map_game(
                         player.move_up();
                     }
                     if check_colitions_enemy(&player, &enemies) {
-                        match battle(player, &enemies) {
+                        match battle(player, &mut enemies) {
                             Some(a) => (),
                             None => player.move_up(),
                         }
@@ -134,7 +134,7 @@ pub fn map_game(
                         player.move_left();
                     }
                     if check_colitions_enemy(&player, &enemies) {
-                        match battle(player, &enemies) {
+                        match battle(player, &mut enemies) {
                             Some(a) => (),
                             None => player.move_left(),
                         }
@@ -147,15 +147,33 @@ pub fn map_game(
 }
 
 //battle gameplay
-pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
+pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32> {
     //gets the enemy to fight
-    let mut fight_enemy = search_battle_enemy(&player, &enemies).expect("failed to find the enemy");
+    let mut fight_enemy = match search_battle_enemy(&player, &mut enemies) {
+        Some(a) => a,
+        None => panic!("failed to find an enemy"),
+    };
     let mut battle = true;
 
     while battle {
         let mut opt_string = String::new();
         let mut select_action_menu = true;
 
+        match fight_enemy.state {
+            State::Dead => {
+                battle = false;
+                select_action_menu = false;
+            }
+            State::Normal => (),
+            _ => (),
+        }
+        match player.state {
+            State::Dead => {
+                battle = false;
+                select_action_menu = false;
+            }
+            _ => (),
+        }
         while select_action_menu {
             graphical_interface::clear_terminal();
             graphical_interface::battle_ui(&player, fight_enemy);
@@ -172,7 +190,10 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
 
             match opt {
                 //attack
-                1 => select_action_menu = false,
+                1 => {
+                    select_action_menu = false;
+                    use_skill(player, fight_enemy, player.basic.clone());
+                }
                 //skill
                 2 => {
                     graphical_interface::clear_terminal();
@@ -187,15 +208,42 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
                         .expect("erorr transforming String into u8");
 
                     match skill_opt_int {
-                        1 => if player.skills[0].name != "empty".to_string() {},
-                        2 => (),
-                        3 => (),
-                        4 => (),
+                        1 => {
+                            if player.skills[0].name != "empty".to_string() {
+                                use_skill(player, fight_enemy, player.skills[0].clone());
+                                println!("skill 1 used");
+                                select_action_menu = false;
+                            }
+                        }
+                        2 => {
+                            if player.skills[1].name != "empty".to_string() {
+                                use_skill(player, fight_enemy, player.skills[1].clone());
+                                select_action_menu = false;
+                            }
+                        }
+                        3 => {
+                            if player.skills[2].name != "empty".to_string() {
+                                use_skill(player, fight_enemy, player.skills[2].clone());
+                                select_action_menu = false;
+                            }
+                        }
+                        4 => {
+                            if player.skills[3].name != "empty".to_string() {
+                                use_skill(player, fight_enemy, player.skills[3].clone());
+                                select_action_menu = false;
+                            }
+                        }
                         _ => println!(" wrong number "),
                     }
                 }
                 //defense
-                3 => select_action_menu = false,
+                3 => player.effects.push(Effect::new(
+                    "defending".to_string(),
+                    1,
+                    EffectType::Buff(BuffType::FlatDefUp(30)),
+                    EffectTarget::TargetSelf,
+                    false,
+                )),
                 //flee
                 4 => {
                     if random_range(1, 100) > 80 {
@@ -211,24 +259,51 @@ pub fn battle(player: &mut Entity, mut enemies: &Vec<Entity>) -> Option<i32> {
                 _ => println!("incorrect option try again"),
             }
             opt_string = String::new();
+
+            
+            let rand_num: usize = random_range(0, 6) as usize;
+
+            if rand_num < 6{
+                if fight_enemy.skills[rand_num].name != ""{
+                    use_skill(fight_enemy, player, fight_enemy.skills[rand_num].clone());
+                }
+            } else {
+                use_skill(fight_enemy, player, fight_enemy.basic.clone());
+            }
         }
     }
 
     None
 }
 
-fn use_skill(mut p: &mut Entity, mut e: &mut Entity, s: &Skill) {
-    let mut effects = &mut p.effects;
-    let mut enemy_effects = &mut e.effects;
+fn use_skill(mut caster: &mut Entity, mut target: &mut Entity, s: Skill) {
+    let mut effects = &mut caster.effects;
+    let mut target_effects = &mut target.effects;
 
     if !s.effect_skill.effects.is_empty() {
         for effect in &s.effect_skill.effects {
             match effect.effect_target {
-                EffectTarget::TargetEnemy => apply_effect(e, effect),
-                EffectTarget::TargetSelf => apply_effect(p, effect),
+                EffectTarget::TargetEnemy => apply_effect(target, effect),
+                EffectTarget::TargetSelf => apply_effect(caster, effect),
                 EffectTarget::None => (),
             }
         }
+    }
+
+    let mut damage = 0;
+    if s.atk_skill.motion_value > 0.0 {
+        damage = calc_damage(caster, target, &s);
+        take_damage(target, damage);
+    }
+
+    graphical_interface::damage_promp(caster, target, &s, damage)
+}
+
+fn take_damage(target: &mut Entity, damage: i32) {
+    target.cur_hp -= damage;
+    if target.cur_hp <= 0 {
+        target.state = State::Dead;
+        target.cur_hp = 0;
     }
 }
 
@@ -236,9 +311,17 @@ fn apply_effect(target: &mut Entity, effect: &Effect) {
     let len = target.effects.len();
     for i in 0..len {
         if target.effects[i].name == effect.name {
-            match effect.can_stack {
-                true => target.effects.push(effect.clone()),
-                false => target.effects[i].duration = effect.duration.clone(),
+            match effect.effect_type {
+                EffectType::Heal(a) => {
+                    target.cur_hp += a;
+                    if target.cur_hp > target.max_hp {
+                        target.cur_hp = target.max_hp;
+                    }
+                }
+                _ => match effect.can_stack {
+                    true => target.effects.push(effect.clone()),
+                    false => target.effects[i].duration = effect.duration.clone(),
+                },
             }
         }
     }
@@ -250,8 +333,8 @@ fn tick_down_effect(entity: &mut Entity) {
 
     for i in 0..len {
         if entity.effects[i].duration == 0 {
-            expired_list.push(i); 
-        }else{
+            expired_list.push(i);
+        } else {
             entity.effects[i].duration -= 1;
         }
     }
@@ -261,7 +344,7 @@ fn tick_down_effect(entity: &mut Entity) {
     }
 }
 
-fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) {
+fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) -> i32 {
     let mut damage = 0;
 
     let mut mv = skill.atk_skill.motion_value.clone();
@@ -323,7 +406,7 @@ fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) {
     damage =
         ((((atk as f32 * (1.0 + atk_up)) * mv) + flat_atk_up as f32) * (1.0 + ele_damage)) as i32;
 
-    println!("{}", damage);
+    //println!("{}", damage);
 
     let mut def = target.def.clone();
     let mut def_up = 1.0;
@@ -368,7 +451,13 @@ fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) {
         AttackElement::None => (),
     }
 
-    let two: i32 = 2;
+    let two: f32 = 1.005;
 
-    let mut total_damage_dealt = ((damage as f32) / (two.pow(def as u32)) as f32 * ele_res) as i32;
+    // formula: (dmg/2^def) * ele
+
+    let mut total_damage_dealt = ((damage as f32) / (two.powf(def as f32)) as f32 * ele_res) as i32;
+
+    //println!("total damage: {}", total_damage_dealt);
+
+    total_damage_dealt
 }
