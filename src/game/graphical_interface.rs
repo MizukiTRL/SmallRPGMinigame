@@ -64,5 +64,5 @@ pub fn damage_promp(caster: &Entity, target: &Entity, skill: &Skill, damage: i32
         "{} has used {}, dealing {} to {}",
         caster.name, skill.name, damage, target.name
     );
-    sleep(Duration::from_secs(1));
+    sleep(Duration::from_secs(2));
 }

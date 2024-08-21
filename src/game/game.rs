@@ -260,11 +260,10 @@ pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32>
             }
             opt_string = String::new();
 
-            
             let rand_num: usize = random_range(0, 6) as usize;
 
-            if rand_num < 6{
-                if fight_enemy.skills[rand_num].name != ""{
+            if rand_num < 6 {
+                if fight_enemy.skills[rand_num].name != "" {
                     use_skill(fight_enemy, player, fight_enemy.skills[rand_num].clone());
                 }
             } else {

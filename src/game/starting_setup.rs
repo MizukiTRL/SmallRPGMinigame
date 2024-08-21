@@ -99,6 +99,13 @@ fn test1() {
 fn test2() {
     let mut test_level1 = Level::new(10, 10);
 
+    let mut basic_skill = Skill::new(
+        "basic".to_string(),
+        0,
+        AtkSkill::new(0.6, AttackElement::Physical, AtkType::Basic),
+        EffectSkill::new_empty(),
+    );
+
     let mut fire_skill = Skill::new(
         "fire".to_string(),
         2,
@@ -137,7 +144,7 @@ fn test2() {
             empty_skill.clone(),
         ],
         vec![],
-        empty_skill.clone(),
+        basic_skill.clone(),
         0.2,
         0.2,
         0.2,
@@ -160,7 +167,7 @@ fn test2() {
             empty_skill.clone(),
         ],
         vec![],
-        empty_skill.clone(),
+        basic_skill.clone(),
         0.2,
         0.2,
         0.2,
