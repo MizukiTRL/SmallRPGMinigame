@@ -7,7 +7,8 @@ use super::{
         level::Level,
         obstacle::Obstacle,
         structs::{
-            AtkSkill, AtkType, AttackElement, Effect, EffectSkill, EffectTarget, EffectType, Entity, EntityType, Skill
+            AtkSkill, AtkType, AttackElement, Effect, EffectSkill, EffectTarget, EffectType,
+            Entity, EntityType, Skill,
         },
     },
 };
@@ -35,6 +36,10 @@ fn test1() {
         ],
         vec![],
         empty_skill.clone(),
+        0.2,
+        0.2,
+        0.2,
+        0.2,
     );
     let o1 = vec![
         Obstacle::new((0, 4)),
@@ -59,6 +64,10 @@ fn test1() {
             ],
             vec![],
             empty_skill.clone(),
+            0.2,
+            0.2,
+            0.2,
+            0.2,
         ),
         Entity::new(
             String::from("test1"),
@@ -76,7 +85,11 @@ fn test1() {
                 empty_skill.clone(),
             ],
             vec![],
-            empty_skill.clone()
+            empty_skill.clone(),
+            0.2,
+            0.2,
+            0.2,
+            0.2,
         ),
     ];
 
@@ -102,6 +115,7 @@ fn test2() {
             0,
             EffectType::Heal(200),
             EffectTarget::TargetSelf,
+            false
         )]),
     );
 
@@ -124,6 +138,10 @@ fn test2() {
         ],
         vec![],
         empty_skill.clone(),
+        0.2,
+        0.2,
+        0.2,
+        0.2,
     );
 
     let mut enemies = vec![Entity::new(
@@ -143,6 +161,10 @@ fn test2() {
         ],
         vec![],
         empty_skill.clone(),
+        0.2,
+        0.2,
+        0.2,
+        0.2,
     )];
 
     battle(&mut player, &enemies);
@@ -183,7 +205,7 @@ fn game_menu() {
             2 => (),
             3 => (),
             4 => {
-                test2();
+                test1();
             }
             5 => menu1 = false,
             _ => (),

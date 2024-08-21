@@ -27,6 +27,10 @@ pub struct Entity {
     pub skills: [Skill; 6],
     pub effects: Vec<Effect>,
     pub basic: Skill,
+    pub fire_res: f32,
+    pub ice_res: f32,
+    pub lightning_res: f32,
+    pub physical_res: f32,
 }
 
 impl Entity {
@@ -39,7 +43,11 @@ impl Entity {
         pos: (i32, i32),
         skill: [Skill; 6],
         effect: Vec<Effect>,
-        basic: Skill
+        basic: Skill,
+        fire_res: f32,
+        ice_res: f32,
+        lightning_res: f32,
+        physical_res: f32,
     ) -> Self {
         Entity {
             name: name,
@@ -53,6 +61,10 @@ impl Entity {
             skills: skill,
             effects: effect,
             basic: basic,
+            fire_res: fire_res,
+            ice_res: ice_res,
+            lightning_res: lightning_res,
+            physical_res: physical_res,
         }
     }
 
@@ -108,7 +120,7 @@ pub enum AttackElement {
     None,
 }
 #[derive(Clone)]
-pub enum AtkType{
+pub enum AtkType {
     Basic,
     Skill,
     None,
@@ -156,12 +168,13 @@ impl EffectSkill {
 }
 
 //Effects
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Effect {
     pub name: String,
     pub duration: u8,
     pub effect_type: EffectType,
     pub effect_target: EffectTarget,
+    pub can_stack: bool,
 }
 
 impl Effect {
@@ -170,12 +183,14 @@ impl Effect {
         duration: u8,
         effect_type: EffectType,
         effect_target: EffectTarget,
+        can_stack: bool,
     ) -> Self {
         Effect {
             name: name,
             duration: duration,
             effect_type: effect_type,
             effect_target: effect_target,
+            can_stack: can_stack,
         }
     }
     pub fn new_empty() -> Self {
@@ -184,17 +199,18 @@ impl Effect {
             duration: 0,
             effect_type: EffectType::None,
             effect_target: EffectTarget::None,
+            can_stack: true,
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum EffectTarget {
     TargetEnemy,
     TargetSelf,
     None,
 }
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum EffectType {
     Buff(BuffType),
     Debuff(DebuffType),
@@ -202,10 +218,10 @@ pub enum EffectType {
     None,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum BuffType {
     AtkUp(f32),
-    FlatAtkUp(u32),
+    FlatAtkUp(i32),
     ElementalUp(f32),
     FireUp(f32),
     IceUp(f32),
@@ -214,7 +230,7 @@ pub enum BuffType {
     SkillUp(f32),
     BasicUp(f32),
     DefUp(f32),
-    FlatDefUp(u32),
+    FlatDefUp(i32),
     ElementalResUp(f32),
     FireResUp(f32),
     IceResUp(f32),
@@ -222,14 +238,14 @@ pub enum BuffType {
     PhysicalResUp(f32),
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum DebuffType {
     Stun,
     Poison,
     AtkDown(f32),
-    FlatAtkDown(u32),
+    FlatAtkDown(i32),
     DefDown(f32),
-    FlatDefDown(u32),
+    FlatDefDown(i32),
     ElementalDown(f32),
     FireDown(f32),
     IceDown(f32),

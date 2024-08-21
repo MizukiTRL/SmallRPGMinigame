@@ -7,7 +7,8 @@ use std::{option, thread};
 use rand::Rng;
 
 use super::utils::structs::{
-    AtkSkill, AtkType, AttackElement, BuffType, DebuffType, Effect, EffectSkill, EffectTarget, EffectType, Skill
+    AtkSkill, AtkType, AttackElement, BuffType, DebuffType, Effect, EffectSkill, EffectTarget,
+    EffectType, Skill,
 };
 use super::utils::{level::Level, obstacle::Obstacle, structs::Entity};
 
@@ -229,18 +230,42 @@ fn use_skill(mut p: &mut Entity, mut e: &mut Entity, s: &Skill) {
             }
         }
     }
-
 }
 
 fn apply_effect(target: &mut Entity, effect: &Effect) {
-    target.effects.push(effect.clone());
+    let len = target.effects.len();
+    for i in 0..len {
+        if target.effects[i].name == effect.name {
+            match effect.can_stack {
+                true => target.effects.push(effect.clone()),
+                false => target.effects[i].duration = effect.duration.clone(),
+            }
+        }
+    }
 }
 
-fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill){
+fn tick_down_effect(entity: &mut Entity) {
+    let mut len = entity.effects.len();
+    let mut expired_list: Vec<usize> = vec![];
+
+    for i in 0..len {
+        if entity.effects[i].duration == 0 {
+            expired_list.push(i); 
+        }else{
+            entity.effects[i].duration -= 1;
+        }
+    }
+
+    for index in expired_list.iter().rev() {
+        entity.effects.remove(*index);
+    }
+}
+
+fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) {
     let mut damage = 0;
 
     let mut mv = skill.atk_skill.motion_value.clone();
-    let mut  atk = caster.atk.clone();
+    let mut atk = caster.atk.clone();
     let mut atk_up = 0.0;
     let mut flat_atk_up = 0;
     let mut ele_damage = 0.0;
@@ -253,33 +278,29 @@ fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill){
 
     for buffs in &caster.effects {
         match &buffs.effect_type {
-            EffectType::Buff(a) =>{
-                match a{
-                    BuffType::AtkUp(b) => atk_up += b,
-                    BuffType::FlatAtkUp(b) => flat_atk_up += b,
-                    BuffType::ElementalUp(b) => ele_damage += b,
-                    BuffType::FireUp(b) => fire_up += b,
-                    BuffType::IceUp(b) => ice_up += b,
-                    BuffType::LightningUp(b) => lightning_up+= b,
-                    BuffType::PhysicalUp(b) => physical_up += b,
-                    BuffType::SkillUp(b) => skill_up += b,
-                    BuffType::BasicUp(b) => basic_up += b,
-                    _ => (),
-                }
+            EffectType::Buff(a) => match a {
+                BuffType::AtkUp(b) => atk_up += b,
+                BuffType::FlatAtkUp(b) => flat_atk_up += b,
+                BuffType::ElementalUp(b) => ele_damage += b,
+                BuffType::FireUp(b) => fire_up += b,
+                BuffType::IceUp(b) => ice_up += b,
+                BuffType::LightningUp(b) => lightning_up += b,
+                BuffType::PhysicalUp(b) => physical_up += b,
+                BuffType::SkillUp(b) => skill_up += b,
+                BuffType::BasicUp(b) => basic_up += b,
+                _ => (),
             },
-            EffectType::Debuff(a) => {
-                match a{
-                    DebuffType::AtkDown(b) => atk_up -= b,
-                    DebuffType::FlatAtkDown(b) => flat_atk_up -= b,
-                    DebuffType::ElementalDown(b)=> ele_damage -= b,
-                    DebuffType::FireDown(b)=> fire_up -= b,
-                    DebuffType::IceDown(b)=> ice_up -= b,
-                    DebuffType::LightningDown(b)=>(),
-                    DebuffType::PhysicalDown(b)=>(),
-                    DebuffType::SkillDown(b)=>(),
-                    DebuffType::BasicDown(b)=>(),
-                    _ =>(),
-                }
+            EffectType::Debuff(a) => match a {
+                DebuffType::AtkDown(b) => atk_up -= b,
+                DebuffType::FlatAtkDown(b) => flat_atk_up -= b,
+                DebuffType::ElementalDown(b) => ele_damage -= b,
+                DebuffType::FireDown(b) => fire_up -= b,
+                DebuffType::IceDown(b) => ice_up -= b,
+                DebuffType::LightningDown(b) => lightning_up -= b,
+                DebuffType::PhysicalDown(b) => physical_up -= b,
+                DebuffType::SkillDown(b) => skill_up -= b,
+                DebuffType::BasicDown(b) => basic_up -= b,
+                _ => (),
             },
             _ => (),
         }
@@ -299,15 +320,55 @@ fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill){
         AttackElement::None => (),
     }
 
-    
+    damage =
+        ((((atk as f32 * (1.0 + atk_up)) * mv) + flat_atk_up as f32) * (1.0 + ele_damage)) as i32;
 
-    for effects in &target.effects{
+    println!("{}", damage);
+
+    let mut def = target.def.clone();
+    let mut def_up = 1.0;
+    let mut flat_def_up = 0;
+    let mut ele_res = 1.0;
+    let mut fire_res = 1.0;
+    let mut ice_res = 1.0;
+    let mut lightning_res = 1.0;
+    let mut physical_res = 1.0;
+
+    for effects in &target.effects {
         match &effects.effect_type {
-            EffectType::Buff(a) => (),
-            EffectType::Debuff(a) => (),
+            EffectType::Buff(a) => match a {
+                BuffType::DefUp(b) => def_up += b,
+                BuffType::FlatDefUp(b) => flat_def_up += b,
+                BuffType::ElementalResUp(b) => ele_res *= 1.0 - b,
+                BuffType::FireResUp(b) => fire_res *= 1.0 - b,
+                BuffType::IceResUp(b) => ice_res *= 1.0 - b,
+                BuffType::LightningResUp(b) => lightning_res *= 1.0 - b,
+                BuffType::PhysicalResUp(b) => physical_res *= 1.0 - b,
+                _ => (),
+            },
+            EffectType::Debuff(a) => match a {
+                DebuffType::DefDown(b) => def_up -= b,
+                DebuffType::FlatDefDown(b) => flat_def_up -= b,
+                DebuffType::ElementalResDown(b) => ele_damage *= 1.0 + b,
+                DebuffType::FireResDown(b) => fire_res *= 1.0 + b,
+                DebuffType::IceResDown(b) => ice_res *= 1.0 + b,
+                DebuffType::LightningResDown(b) => lightning_res *= 1.0 + b,
+                DebuffType::PhysicalResDown(b) => physical_res *= 1.0 + b,
+                _ => (),
+            },
             _ => (),
         }
     }
 
+    match skill.atk_skill.attack_element {
+        AttackElement::Fire => ele_res *= fire_res,
+        AttackElement::Ice => ele_res *= ice_res,
+        AttackElement::Lightning => ele_res *= lightning_res,
+        AttackElement::Physical => ele_res *= lightning_res,
+        AttackElement::None => (),
+    }
 
+    let two: i32 = 2;
+
+    let mut total_damage_dealt = ((damage as f32) / (two.pow(def as u32)) as f32 * ele_res) as i32;
 }
