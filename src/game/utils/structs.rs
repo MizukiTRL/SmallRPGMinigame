@@ -1,12 +1,14 @@
 use std::{clone, time::Duration};
 
-#[derive(Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum State {
     Normal,
     Stunned,
     Dead,
 }
-#[derive(Clone)]
+#[derive(Clone,Serialize, Deserialize, Debug)]
 pub enum EntityType {
     Still,
     Moving,
@@ -14,7 +16,7 @@ pub enum EntityType {
     PlayerControlled,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Entity {
     pub name: String,
     pub max_hp: i32,
@@ -83,7 +85,7 @@ impl Entity {
 }
 
 //skills used in combat
-#[derive(Clone)]
+#[derive(Clone,Serialize, Deserialize, Debug)]
 pub struct Skill {
     pub name: String,
     pub cost: i32,
@@ -111,7 +113,7 @@ impl Skill {
 }
 
 //Damage types
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum AttackElement {
     Fire,
     Ice,
@@ -119,14 +121,14 @@ pub enum AttackElement {
     Physical,
     None,
 }
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum AtkType {
     Basic,
     Skill,
     None,
 }
 //Applies damage on the skill
-#[derive(Clone)]
+#[derive(Clone,Serialize, Deserialize, Debug)]
 pub struct AtkSkill {
     pub motion_value: f32,
     pub attack_element: AttackElement,
@@ -152,7 +154,7 @@ impl AtkSkill {
 }
 
 //Applies effects to skils
-#[derive(Clone)]
+#[derive(Clone,Serialize, Deserialize, Debug)]
 pub struct EffectSkill {
     pub effects: Vec<Effect>,
 }
@@ -168,7 +170,7 @@ impl EffectSkill {
 }
 
 //Effects
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq,Serialize, Deserialize, Debug)]
 pub struct Effect {
     pub name: String,
     pub duration: u8,
@@ -204,13 +206,13 @@ impl Effect {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq,Serialize, Deserialize, Debug)]
 pub enum EffectTarget {
     TargetEnemy,
     TargetSelf,
     None,
 }
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq,Serialize, Deserialize, Debug)]
 pub enum EffectType {
     Buff(BuffType),
     Debuff(DebuffType),
@@ -218,7 +220,7 @@ pub enum EffectType {
     None,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub enum BuffType {
     AtkUp(f32),
     FlatAtkUp(i32),
@@ -238,7 +240,7 @@ pub enum BuffType {
     PhysicalResUp(f32),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub enum DebuffType {
     Stun,
     Poison,

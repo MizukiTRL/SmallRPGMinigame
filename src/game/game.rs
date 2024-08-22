@@ -1,3 +1,4 @@
+use std::collections::btree_map;
 use std::io::{self, Read, Write};
 use std::sync::Arc;
 use std::thread::sleep;
@@ -60,6 +61,50 @@ fn search_battle_enemy<'a>(mut p: &Entity, mut es: &'a mut Vec<Entity>) -> Optio
     return None;
 }
 
+fn new_skill_selectin(player: &mut Entity, skill: Skill){
+    let mut done  = false;
+    for (i, s) in player.skills.iter_mut().enumerate().rev(){
+        if s.name == "" && !done{
+            *s = skill.clone();
+            done = true;
+        }
+    }
+
+    if !done{
+        let mut input = String::new();
+        println!("which skill you wish to replace:");
+        graphical_interface::skill_menu(&player, 0);
+        println!("5- none");
+        let mut looping = true;
+        while looping {
+            io::stdin().read_line(&mut input).expect("error reading user input on skill selecting");
+            let mut input_int: u8 = input.parse().expect("incorrect input");
+            match input_int {
+                1 => {
+                    player.skills[0] = skill.clone();
+                    looping= false
+                },
+                2 => {
+                    player.skills[0] = skill.clone();
+                    looping= false
+                },
+                3 => {
+                    player.skills[0] = skill.clone();
+                    looping= false
+                },
+                4 => {
+                    player.skills[0] = skill.clone();
+                    looping= false
+                },
+                5 => looping = false,
+                _ => println!("invalid input"),
+            }
+        }
+
+
+    }
+}
+
 //map movement gameplay
 pub fn map_game(
     player: &mut Entity,
@@ -93,8 +138,11 @@ pub fn map_game(
                     }
                     if check_colitions_enemy(&player, &enemies) {
                         match battle(player, &mut enemies) {
-                            Some(a) => (),
-                            None => player.move_down(),
+                            Some(a) => {
+                                println!("New skil aquired!");
+                                new_skill_selectin(player, a);
+                            },
+                            None => break,
                         }
                     }
                 }
@@ -108,7 +156,7 @@ pub fn map_game(
                     if check_colitions_enemy(&player, &enemies) {
                         match battle(player, &mut enemies) {
                             Some(a) => (),
-                            None => player.move_right(),
+                            None => break,
                         }
                     }
                 }
@@ -122,7 +170,7 @@ pub fn map_game(
                     if check_colitions_enemy(&player, &enemies) {
                         match battle(player, &mut enemies) {
                             Some(a) => (),
-                            None => player.move_up(),
+                            None => break,
                         }
                     }
                 }
@@ -136,7 +184,7 @@ pub fn map_game(
                     if check_colitions_enemy(&player, &enemies) {
                         match battle(player, &mut enemies) {
                             Some(a) => (),
-                            None => player.move_left(),
+                            None => break,
                         }
                     }
                 }
@@ -147,17 +195,25 @@ pub fn map_game(
 }
 
 //battle gameplay
-pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32> {
+pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<Skill> {
     //gets the enemy to fight
     let mut fight_enemy = match search_battle_enemy(&player, &mut enemies) {
         Some(a) => a,
         None => panic!("failed to find an enemy"),
     };
+    let mut win = true;
     let mut battle = true;
+    let mut points = 5;
+    let max_points = 10;
 
     while battle {
         let mut opt_string = String::new();
         let mut select_action_menu = true;
+
+        points += 3;
+        if points >10{
+            points = 10;
+        }
 
         match fight_enemy.state {
             State::Dead => {
@@ -171,12 +227,14 @@ pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32>
             State::Dead => {
                 battle = false;
                 select_action_menu = false;
+                println!("          You Lose            ");
+                win = false;
             }
             _ => (),
         }
         while select_action_menu {
             graphical_interface::clear_terminal();
-            graphical_interface::battle_ui(&player, fight_enemy);
+            graphical_interface::battle_ui(&player, fight_enemy, points);
 
             io::stdout().flush();
             io::stdin()
@@ -197,7 +255,7 @@ pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32>
                 //skill
                 2 => {
                     graphical_interface::clear_terminal();
-                    graphical_interface::skill_menu(&player);
+                    graphical_interface::skill_menu(&player, points);
                     let mut skill_opt = String::from("");
                     io::stdin()
                         .read_line(&mut skill_opt)
@@ -209,41 +267,65 @@ pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32>
 
                     match skill_opt_int {
                         1 => {
-                            if player.skills[0].name != "empty".to_string() {
+                            if player.skills[0].name != "empty".to_string() && points< player.skills[0].cost{
+                                points -= player.skills[0].cost;
                                 use_skill(player, fight_enemy, player.skills[0].clone());
-                                println!("skill 1 used");
                                 select_action_menu = false;
                             }
                         }
                         2 => {
-                            if player.skills[1].name != "empty".to_string() {
+                            if player.skills[1].name != "empty".to_string()  && points< player.skills[1].cost{
+                                points -= player.skills[1].cost;
                                 use_skill(player, fight_enemy, player.skills[1].clone());
                                 select_action_menu = false;
                             }
                         }
                         3 => {
-                            if player.skills[2].name != "empty".to_string() {
+                            if player.skills[2].name != "empty".to_string()  && points< player.skills[2].cost{
+                                points -= player.skills[2].cost;
                                 use_skill(player, fight_enemy, player.skills[2].clone());
                                 select_action_menu = false;
                             }
                         }
                         4 => {
-                            if player.skills[3].name != "empty".to_string() {
+                            if player.skills[3].name != "empty".to_string()  && points< player.skills[3].cost{
+                                points -= player.skills[3].cost;
                                 use_skill(player, fight_enemy, player.skills[3].clone());
                                 select_action_menu = false;
                             }
                         }
+                        5 => {
+                            if player.skills[4].name != "empty".to_string()  && points< player.skills[4].cost{
+                                points -= player.skills[4].cost;
+                                use_skill(player, fight_enemy, player.skills[4].clone());
+                                select_action_menu = false;
+                            }
+                        }
+                        6 => {
+                            if player.skills[5].name != "empty".to_string()  && points< player.skills[5].cost{
+                                points -= player.skills[5].cost;
+                                use_skill(player, fight_enemy, player.skills[5].clone());
+                                select_action_menu = false;
+                            }
+                        }
+                        7 => println!("Returning"),
                         _ => println!(" wrong number "),
                     }
                 }
                 //defense
-                3 => player.effects.push(Effect::new(
+                3 => {
+                    player.effects.push(Effect::new(
                     "defending".to_string(),
-                    1,
+                    0,
                     EffectType::Buff(BuffType::FlatDefUp(30)),
                     EffectTarget::TargetSelf,
                     false,
-                )),
+                    ));
+                    points += 1;
+                    if points > max_points{
+                        points = max_points;
+                    } 
+                },
                 //flee
                 4 => {
                     if random_range(1, 100) > 80 {
@@ -259,15 +341,38 @@ pub fn battle(player: &mut Entity, mut enemies: &mut Vec<Entity>) -> Option<i32>
                 _ => println!("incorrect option try again"),
             }
             opt_string = String::new();
+            let mut enemy_ai = true;
 
-            let rand_num: usize = random_range(0, 6) as usize;
+            while enemy_ai {
+                let rand_num: usize = random_range(0, 6) as usize;
 
-            if rand_num < 6 {
-                if fight_enemy.skills[rand_num].name != "" {
-                    use_skill(fight_enemy, player, fight_enemy.skills[rand_num].clone());
+                if rand_num < 6 {
+                    if fight_enemy.skills[rand_num].name != "" {
+                        use_skill(fight_enemy, player, fight_enemy.skills[rand_num].clone());
+                        enemy_ai = false;
+                    }
+                } else {
+                    use_skill(fight_enemy, player, fight_enemy.basic.clone());
+                    enemy_ai = false;
                 }
-            } else {
-                use_skill(fight_enemy, player, fight_enemy.basic.clone());
+            }
+            tick_down_effect(player);
+            tick_down_effect(fight_enemy);
+            
+        }
+    }
+
+    let mut rand_skill = true; 
+
+
+    if win{
+        while rand_skill {
+            let rand_num: usize = random_range(0, 5) as usize;
+
+            if fight_enemy.skills[rand_num].name != "" {
+                println!("obtained {}", fight_enemy.skills[rand_num].name);
+                rand_skill = false;
+                return  Some(fight_enemy.skills[rand_num].clone());
             }
         }
     }
@@ -294,8 +399,26 @@ fn use_skill(mut caster: &mut Entity, mut target: &mut Entity, s: Skill) {
         damage = calc_damage(caster, target, &s);
         take_damage(target, damage);
     }
-
-    graphical_interface::damage_promp(caster, target, &s, damage)
+    if s.atk_skill.motion_value != 0.0{
+        graphical_interface::damage_promp(caster, target, &s, damage)
+    }
+    for effects in &s.effect_skill.effects{
+        match effects.effect_target {
+            EffectTarget::TargetSelf => match &effects.effect_type {
+                EffectType::Buff(a) => (),
+                EffectType::Debuff(a) => (),
+                EffectType::Heal(a)  => (),
+                _ => (),
+            },
+            EffectTarget::TargetEnemy => match &effects.effect_type {
+                EffectType::Buff(a) => (),
+                EffectType::Debuff(a) => (),
+                EffectType::Heal(a)  => (),
+                _ => (),
+            }
+            _ => (),
+        }
+    }
 }
 
 fn take_damage(target: &mut Entity, damage: i32) {
@@ -308,21 +431,23 @@ fn take_damage(target: &mut Entity, damage: i32) {
 
 fn apply_effect(target: &mut Entity, effect: &Effect) {
     let len = target.effects.len();
-    for i in 0..len {
-        if target.effects[i].name == effect.name {
-            match effect.effect_type {
-                EffectType::Heal(a) => {
-                    target.cur_hp += a;
-                    if target.cur_hp > target.max_hp {
-                        target.cur_hp = target.max_hp;
-                    }
-                }
-                _ => match effect.can_stack {
-                    true => target.effects.push(effect.clone()),
-                    false => target.effects[i].duration = effect.duration.clone(),
-                },
+    if !effect.can_stack {
+        // try resetting duration of previously applied effect if it exists
+        for target_effect in &mut target.effects {
+            if target_effect.name == effect.name {
+                target_effect.duration = effect.duration.clone();
+                return;
             }
         }
+    }
+    match effect.effect_type {
+        EffectType::Heal(a) => {
+            target.cur_hp += a;
+            if target.cur_hp > target.max_hp {
+                target.cur_hp = target.max_hp;
+            }
+        }
+        _ => target.effects.push(effect.clone()),
     }
 }
 
@@ -405,7 +530,7 @@ fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) -> i32 {
     damage =
         ((((atk as f32 * (1.0 + atk_up)) * mv) + flat_atk_up as f32) * (1.0 + ele_damage)) as i32;
 
-    //println!("{}", damage);
+    println!("{}", damage);
 
     let mut def = target.def.clone();
     let mut def_up = 1.0;
@@ -450,13 +575,17 @@ fn calc_damage(caster: &mut Entity, target: &mut Entity, skill: &Skill) -> i32 {
         AttackElement::None => (),
     }
 
+    let total_def = (def as f32*def_up) as i32 + flat_def_up;
+
     let two: f32 = 1.005;
 
     // formula: (dmg/2^def) * ele
 
-    let mut total_damage_dealt = ((damage as f32) / (two.powf(def as f32)) as f32 * ele_res) as i32;
+    let mut total_damage_dealt = ((damage as f32) / (two.powf(total_def as f32)) as f32 * ele_res) as i32;
 
-    //println!("total damage: {}", total_damage_dealt);
+    println!("total damage: {}", total_damage_dealt);
+
+    sleep(Duration::from_secs(3));
 
     total_damage_dealt
 }

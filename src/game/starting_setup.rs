@@ -1,4 +1,4 @@
-use std::{env::var, io, option, thread::sleep, time::Duration, vec};
+use std::{env::var, io, net::AddrParseError, option, string, thread::sleep, time::Duration, vec};
 
 use super::{
     game::{self, battle},
@@ -153,7 +153,7 @@ fn test2() {
 
     let mut enemies = vec![Entity::new(
         String::from("test1"),
-        5000,
+        1000,
         100,
         20,
         EntityType::Still,
@@ -174,11 +174,34 @@ fn test2() {
         0.2,
     )];
 
+    let player_json = serde_json::to_string(&player).unwrap();
+
+    println!("{}", player_json);
+    sleep(Duration::from_secs(3));
+
     battle(&mut player, &mut enemies);
 }
 
-fn load_data() {
+enum DataType{
+    Level,
+    Entity,
+    Obstacle,
+    Skill,
+    SaveFile,
+}
+
+fn load_data(data_type: DataType,) {
     todo!();
+}
+
+fn save_data(data_type: DataType, data: String){
+    let address = match data_type {
+        DataType::Level => (),
+        DataType::Entity => (),
+        DataType::Obstacle => (),
+        DataType::Skill =>  (),
+        DataType::SaveFile => (),
+    };
 }
 
 pub fn startup() {
